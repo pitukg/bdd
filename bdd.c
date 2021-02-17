@@ -153,29 +153,24 @@ static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op o
 	  return bdd_of_binary_(right_bdd, left_bdd, op, arena);
 	case bddBRANCH:
 	{
+	  // Note in these cases left_bdd is not re-used somewhere so we can modify it
 	  if (left_bdd->data.branch.test_symbol == right_bdd->data.branch.test_symbol) {
-	    bdd_t *newbdd = mk_bdd(arena);
-	    newbdd->type = bddBRANCH;
-	    newbdd->data.branch.test_symbol = left_bdd->data.branch.test_symbol;
-	    newbdd->data.branch.if_true = bdd_of_binary_(
+	    left_bdd->data.branch.if_true = bdd_of_binary_(
 		left_bdd->data.branch.if_true, right_bdd->data.branch.if_true, op, arena);
-	    newbdd->data.branch.if_false = bdd_of_binary_(
+	    left_bdd->data.branch.if_false = bdd_of_binary_(
 		left_bdd->data.branch.if_false, right_bdd->data.branch.if_false, op, arena);
-	    if (newbdd->data.branch.if_true == newbdd->data.branch.if_false)
-	      return newbdd->data.branch.if_true;
-	    else return newbdd;
+	    if (left_bdd->data.branch.if_true == left_bdd->data.branch.if_false)
+	      return left_bdd->data.branch.if_true;
+	    else return left_bdd;
 	    // right_bdd and possibly left_bdd is no longer used, arena will take care of freeing them
 	  } else if (left_bdd->data.branch.test_symbol < right_bdd->data.branch.test_symbol) {
-	    bdd_t *newbdd = mk_bdd(arena);
-	    newbdd->type = bddBRANCH;
-	    newbdd->data.branch.test_symbol = left_bdd->data.branch.test_symbol;
-	    newbdd->data.branch.if_true = bdd_of_binary_(
+	    left_bdd->data.branch.if_true = bdd_of_binary_(
 		left_bdd->data.branch.if_true, right_bdd, op, arena);
-	    newbdd->data.branch.if_false = bdd_of_binary_(
+	    left_bdd->data.branch.if_false = bdd_of_binary_(
 		left_bdd->data.branch.if_false, right_bdd, op, arena);
-	    if (newbdd->data.branch.if_true == newbdd->data.branch.if_false)
-	      return newbdd->data.branch.if_true;
-	    else return newbdd;
+	    if (left_bdd->data.branch.if_true == left_bdd->data.branch.if_false)
+	      return left_bdd->data.branch.if_true;
+	    else return left_bdd;
 	  } else {
 	    if (op == RIMPLIES_) op = LIMPLIES_;
 	    else if (op == LIMPLIES_) op = RIMPLIES_;
