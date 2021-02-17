@@ -9,7 +9,9 @@ struct formula;
 typedef struct formula formula_t;
 
 struct formula {
-  enum { CONSTANT, SYMBOL, NOT, AND, OR, XOR, IMPLIES, IFF } type;
+  enum formula_type {
+    CONSTANT, SYMBOL, NOT, AND, OR, XOR, IMPLIES, IFF
+  } type;
 
   union {
     bool constant;

@@ -24,6 +24,15 @@ static bdd_t constant_bdd[2] = {
 // Note: LIMPLIES_ stands for <- type and RIMPLIES_ for -> type implication
 enum binary_op { AND_, OR_, XOR_, LIMPLIES_, RIMPLIES_, IFF_ };
 
+static inline enum binary_op formula_type_to_binary_op_(enum formula_type type) {
+  if (type == AND) return AND_;
+  if (type == OR) return OR_;
+  if (type == XOR) return XOR_;
+  if (type == IMPLIES) return RIMPLIES_;
+  if (type == IFF) return IFF_;
+  else assert (false); // Type is not a binary op
+}
+
 static bdd_t *not_(const bdd_t *bdd, bdd_arena_t *arena);
 static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op op, bdd_arena_t *arena);
 
@@ -45,35 +54,12 @@ bdd_t *bdd_of_formula(formula_t *formula, bdd_arena_t *arena) {
       bdd_t *of_inner = bdd_of_formula(formula->data.unary, arena);
       return not_(of_inner, arena);
     }
-    case AND:
+    default:
     {
       bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
 	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, AND_, arena);
-    }
-    case OR:
-    {
-      bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
-	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, OR_, arena);
-    }
-    case XOR:
-    {
-      bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
-	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, XOR_, arena);
-    }
-    case IMPLIES:
-    {
-      bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
-	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, RIMPLIES_, arena);
-    }
-    case IFF:
-    {
-      bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
-	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, IFF_, arena);
+      enum binary_op op = formula_type_to_binary_op_(formula->type);
+      return bdd_of_binary_(of_left, of_right, op, arena);
     }
   }
 }
