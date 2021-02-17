@@ -21,7 +21,8 @@ static bdd_t constant_bdd[2] = {
   { .type = bddCONSTANT, .data.constant = true }
 };
 
-enum binary_op { AND_, OR_, XOR_, IMPLIES_, IFF_ };
+// Note: LIMPLIES_ stands for <- type and RIMPLIES_ for -> type implication
+enum binary_op { AND_, OR_, XOR_, LIMPLIES_, RIMPLIES_, IFF_ };
 
 static bdd_t *not_(const bdd_t *bdd, bdd_arena_t *arena);
 static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op op, bdd_arena_t *arena);
@@ -66,7 +67,7 @@ bdd_t *bdd_of_formula(formula_t *formula, bdd_arena_t *arena) {
     {
       bdd_t *of_left = bdd_of_formula(formula->data.binary.left, arena),
 	    *of_right = bdd_of_formula(formula->data.binary.right, arena);
-      return bdd_of_binary_(of_left, of_right, IMPLIES_, arena);
+      return bdd_of_binary_(of_left, of_right, RIMPLIES_, arena);
     }
     case IFF:
     {
@@ -102,7 +103,8 @@ static inline bool do_binary_op_(bool a, bool b, enum binary_op op) {
     case AND_: return a & b;
     case OR_: return a | b;
     case XOR_: return a ^ b;
-    case IMPLIES_: return (!a) | b;
+    case LIMPLIES_: return a | (!b);
+    case RIMPLIES_: return (!a) | b;
     case IFF_: return a == b;
   }
 }
@@ -129,7 +131,10 @@ static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op o
 	    case XOR_:
 	      if (left_bdd->data.constant) return not_(right_bdd, arena);
 	      else return right_bdd;
-	    case IMPLIES_:
+	    case LIMPLIES_:
+	      if (left_bdd->data.constant) return &constant_bdd[1];
+	      else return not_(right_bdd, arena);
+	    case RIMPLIES_:
 	      if (left_bdd->data.constant) return right_bdd;
 	      else return &constant_bdd[1];
 	    case IFF_:
@@ -143,6 +148,8 @@ static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op o
     {
       switch (right_bdd->type) {
 	case bddCONSTANT:
+	  if (op == RIMPLIES_) op = LIMPLIES_;
+	  else if (op == LIMPLIES_) op = RIMPLIES_;
 	  return bdd_of_binary_(right_bdd, left_bdd, op, arena);
 	case bddBRANCH:
 	{
@@ -170,6 +177,8 @@ static bdd_t *bdd_of_binary_(bdd_t *left_bdd, bdd_t *right_bdd, enum binary_op o
 	      return newbdd->data.branch.if_true;
 	    else return newbdd;
 	  } else {
+	    if (op == RIMPLIES_) op = LIMPLIES_;
+	    else if (op == LIMPLIES_) op = RIMPLIES_;
 	    return bdd_of_binary_(right_bdd, left_bdd, op, arena);
 	  }
 	}
