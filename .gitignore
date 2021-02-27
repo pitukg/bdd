@@ -1,8 +1,14 @@
 # Object files
 **.o
 
+# Lex & yacc files
+driver.tab.c
+driver.tab.h
+lex.yy.c
+
 # Executable
 test
+driver
 
 # Debug information
 **.dSYM/*
