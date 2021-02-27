@@ -1,17 +1,26 @@
 %{
-#include <stdio.h>
-#include "driver.tab.h"
+  #include <stdio.h>
+  #include "driver.tab.h"
+  #include "formula.h"
+
+  extern symbol_t yysymbol;
 %}
 
 %%
 [A-Z]	{
-	  ECHO;
-	  yylval = yytext[0];
-	  return SYMBOL;
+	  yysymbol = yytext[0];
+	  return T_SYMBOL;
+	}
+
+\n	{
+	  return *yytext;
+	}
+
+[ \t]	{
+	  // Ignore space or tab
 	}
 
 .	{
-	  ECHO;
 	  return *yytext;
 	}
 %%
